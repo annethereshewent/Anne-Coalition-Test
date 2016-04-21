@@ -38,9 +38,9 @@ class ProductController extends Controller {
       'Total_Value' => (int)$request->input('quantity') * (int)$request->input('price')
     ];
     
-    $fp = fopen('productJson.json', 'w');
+    $fp = fopen('productJson_'.date('Ymdhis').'json', 'w');
     
-    fwrite($fp, json_encode($return_array));
+    fwrite($fp, json_encode($return_array)."\n");
     
     fclose($fp);
     
