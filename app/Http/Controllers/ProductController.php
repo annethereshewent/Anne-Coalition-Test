@@ -22,10 +22,7 @@ class ProductController extends Controller {
   }
   
   public function updateProduct(Request $request) {
-    $quantity = intval($request->input('quantity'));
-    $price = intval($request->input('price'));
-    
-    if (!is_numeric($quantity) || !is_numeric($price)) {
+    if (!is_numeric($request->input('quantity')) || !is_numeric($request->input('price'))) {
       return Redirect::to('/')
         ->withErrors(["The quantity and price must be numeric values."]);
     }
@@ -40,7 +37,7 @@ class ProductController extends Controller {
     
     $fp = fopen('productJson_'.date('Ymdhis').'json', 'w');
     
-    fwrite($fp, json_encode($return_array)."\n");
+    fwrite($fp, json_encode($return_array));
     
     fclose($fp);
     

@@ -90,7 +90,9 @@
       </div>
       <div class="notice">
         <?php if (Session::get('product_return') != null): ?>
-          <h3>Form submission contents:</h3>
+          <div class="row">
+            <h3>Form submission contents:</h3>
+          </div>
           <div class="row">
             <div class="col-md-2">
               <label class="control-label">Product Name:</label>
