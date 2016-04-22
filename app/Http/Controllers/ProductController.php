@@ -45,7 +45,7 @@ class ProductController extends Controller {
     
     $json_return = json_encode($return_array);
     
-    fwrite($fp, json_encode($json_return));
+    fwrite($fp, $json_return );
     
     fclose($fp);
     
