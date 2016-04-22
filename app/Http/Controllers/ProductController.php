@@ -33,21 +33,29 @@ class ProductController extends Controller {
         ->withErrors(["The quantity and price must be numeric values."]);
     }
     
-    $return_array = [
-      'Product_Name' => $request->input('name'),
-      'Quantity_In_Stock' => $request->input('quantity'),
-      'Price_Per_Item' => $request->input('price'),
-      'Datetime_Submitted' => date('m/d/Y h:i:s'),
-      'Total_Value' => (int)$request->input('quantity') * (int)$request->input('price')
+    $new_product = [
+      'name' => $request->input('name'),
+      'quantity' => $request->input('quantity'),
+      'price' => $request->input('price'),
+      'date' => date('m/d/Y h:i:s'),
+      'total' => (int)$request->input('quantity') * (double)$request->input('price')
     ];
     
-    $fp = fopen('productJson_'.date('Ymdhis').'json', 'w');
+    //fetch the current products from the json file, decode, add new product, and encode again.
     
-    $json_return = json_encode($return_array);
+    $current_products = file_exists('productJson.json') ? json_decode(file_get_contents('productJson.json')) : [];
     
-    fwrite($fp, $json_return );
+    $current_products[] = $new_product;
+    
+    $fp = fopen('productJson.json', 'w');
+    
+    $json_return = json_encode($current_products);
+    
+    fwrite($fp, $json_return);
     
     fclose($fp);
+    
+  
     
     echo $json_return;
     exit;

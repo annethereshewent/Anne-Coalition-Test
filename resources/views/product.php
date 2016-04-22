@@ -117,9 +117,13 @@
     <script src="<?= url('/js/jquery-2.2.3.min.js') ?>" type="text/javascript"></script>
     <script src="<?= url('/js/bootstrap.min.js') ?>" type="text/javascript"></script>
     <script type='text/javascript'>
-      var running_total = 0;
+      
 
       function updateProduct() {
+        var running_total = 0;
+        $('.product-item').each(function() {
+          $(this).remove()
+        });
         var has_errors = false;
         //remove any errors that are still showing up
         $('.error').each(function() {
@@ -158,9 +162,25 @@
         $('#notice').show();
         $("#running_total").show();
         $.post('/updateProduct', $("#product-form").serialize(), function(data) {
-          running_total += parseInt(data.Total_Value);
-          //assume that we only show the data that has been submitted for the current page. if the user closes the page it starts a new list of products submitted
-          $('#notice').append('<div class="row"><div class="col-sm-2">' + data.Product_Name + '</div><div class="col-sm-2">' + data.Quantity_In_Stock + '</div><div class="col-sm-2">' + data.Price_Per_Item + '</div><div class="col-sm-3">' + data.Datetime_Submitted + '</div><div class="col-sm-2">' + data.Total_Value + '</div></div>');
+          data.sort(function(a, b) {
+            var date_a = new Date(a);
+            var date_b = new Date(b);
+            
+            if (date_a > date_b) {
+              return 1;
+            }
+            if (date_b > date_a) {
+              return -1;
+            }
+            
+            return 0;
+          });
+          
+          for (var i = 0; i < data.length; i++) {
+            running_total += parseFloat(data[i].total);
+            $('#notice').append('<div class="row product-item"><div class="col-sm-2">' + data[i].name + '</div><div class="col-sm-2">' + data[i].quantity + '</div><div class="col-sm-2">' + data[i].price + '</div><div class="col-sm-3">' + data[i].date + '</div><div class="col-sm-2">' + data[i].total + '</div></div>');
+          }
+          
           
           $("#running_total").html('<div class="row"><div class="col-sm-2"><label class"control-label">Running Total:</label></div><div class="col-sm-10">' + running_total + '</div></div>');
           
