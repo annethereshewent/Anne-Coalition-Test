@@ -27,14 +27,14 @@
       .error {
           color: red;
       }
-      .errors, .notice {
+      .errors {
           text-align: center;
           margin-top:40px;
       }
-      .notice {
-          text-align: center;
+      .notice, #running_total {
           font-family: Cambria;
-          font-size: 12px;
+          font-size: 10px;
+          margin-left:40px;
       }
       h3 {
           margin-bottom: 20px;
@@ -75,68 +75,100 @@
             &nbsp;
           </div>
           <div class="col-md-6">
-            <button type="submit" class="btn-lg btn-success" value="Update Product">UPDATE PRODUCT</button>
+            <button type="button" class="btn-lg btn-success" onclick="updateProduct()"">UPDATE PRODUCT</button>
           </div>
         </div>
       </div> <!-- end container -->
-      <div class="errors">
-        <?php foreach ($errors->all() as $error): ?>
-          <div class="row">
-            <div class="col-md-6 error">
-              <?= $error ?>
-            </div>
-          </div>
-        <?php endforeach; ?>
-      </div>
-      <div class="notice">
-        <?php if (Session::get('product_return') != null): ?>
-          <div class="row">
-            <h3>Form submission contents:</h3>
-          </div>
-          <div class="row">
-            <div class="col-md-2">
-              <label class="control-label">Product Name:</label>
-            </div>
-            <div class="col-md-6">
-              <p><?= Session::get('product_return')['Product_Name'] ?></p>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-2">
-              <label class="control-label">Quantity in Stock:</label>
-            </div>
-            <div class="col-md-6">
-              <p><?= Session::get('product_return')['Quantity_In_Stock'] ?></p>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-2">
-              <label class="control-label">Price Per Item:</label>
-            </div>
-            <div class="col-md-6">
-              <p><?= Session::get('product_return')['Price_Per_Item'] ?></p>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-2">
-              <label class="control-label">Datetime Submitted</label>
-            </div>
-            <div class="col-md-6">
-              <p><?= Session::get('product_return')['Datetime_Submitted'] ?></p>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-2">
-              <label class="control-label">Total Value:</label>
-            </div>
-            <div class="col-md-6">
-              <p><?= Session::get('product_return')['Total_Value'] ?></p>
-            </div>
-          </div>
-        <?php endif ?>
-      </div>
     </form>
+    <div class="errors">
+      <?php foreach ($errors->all() as $error): ?>
+        <div class="row">
+          <div class="col-md-6 error">
+            <?= $error ?>
+          </div>
+        </div>
+      <?php endforeach; ?>
+    </div>
+    <div class="notice" id="notice" style="display:none">
+      <div class="row">
+        <div class='col-md-12'>
+          <h3>Form submission contents:</h3>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-2">
+          <label class="control-label">Product Name:</label>
+        </div>
+        <div class="col-sm-2">
+          <label class="control-label">Quantity in Stock:</label>
+        </div>
+        <div class="col-sm-2">
+          <label class="control-label">Price Per Item:</label>
+        </div>
+        <div class="col-sm-3">
+          <label class="control-label">Datetime Submitted</label>
+        </div>
+        <div class="col-sm-2">
+          <label class="control-label">Total Value:</label>
+        </div>
+      </div>
+    </div>
+    <div id="running_total" class="row" style="display:none"></div>
+    <script src="<?= url('/js/jquery-2.2.3.min.js') ?>" type="text/javascript"></script>
     <script src="<?= url('/js/bootstrap.min.js') ?>" type="text/javascript"></script>
-    <script src="<?= url('/jquery-2.2.3.min.js') ?>" type="text/javascript"></script> 
+    <script type='text/javascript'>
+      var running_total = 0;
+
+      function updateProduct() {
+        var has_errors = false;
+        //remove any errors that are still showing up
+        $('.error').each(function() {
+          $(this).remove();
+        })
+        
+        //validate the fields
+        if ($('#name').val() == '') {
+          $('.errors').append('<div class="row"><div class="col-md-6 error">Please enter product name.</div></div>');
+          has_errors = true;
+        }
+        if (!$.isNumeric($("#quantity").val()) || !$.isNumeric($("#price").val())) {
+          $('.errors').append('<div class="row"><div class="col-md-6 error">Please enter a numeric value for price and quantity.</div></div>');
+          has_errors  = true;
+        }
+        
+        if (has_errors) {
+          console.log("the form has errors");
+          return false;
+        }
+        
+        console.log("attempting ajax");
+        
+        //submit the form
+//        $.ajax({
+//          type: 'post',
+//          data: $("#product-form").serialize(),
+//          url: '/updateProduct',
+//          dataType: 'json',
+//          success: function(data) {
+//            //here is where we append the data
+//            console.log("something happened");
+//            console.debug(data);
+//          }
+//        });
+        $('#notice').show();
+        $("#running_total").show();
+        $.post('/updateProduct', $("#product-form").serialize(), function(data) {
+          running_total += parseInt(data.Total_Value);
+          //assume that we only show the data that has been submitted for the current page. if the user closes the page it starts a new list of products submitted
+          $('#notice').append('<div class="row"><div class="col-sm-2">' + data.Product_Name + '</div><div class="col-sm-2">' + data.Quantity_In_Stock + '</div><div class="col-sm-2">' + data.Price_Per_Item + '</div><div class="col-sm-3">' + data.Datetime_Submitted + '</div><div class="col-sm-2">' + data.Total_Value + '</div></div>');
+          
+          $("#running_total").html('<div class="row"><div class="col-sm-2"><label class"control-label">Running Total:</label></div><div class="col-sm-10">' + running_total + '</div></div>');
+          
+          
+        }, 'json');
+        
+        
+      }
+    </script>
   </body>
 </html>
